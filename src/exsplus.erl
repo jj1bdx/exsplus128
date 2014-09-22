@@ -56,7 +56,9 @@
 
 -opaque state() :: #state{}.
 
+-define(UINT32MASK, 16#ffffffff).
 -define(UINT64MASK, 16#ffffffffffffffff).
+-define(UINT128MASK, 16#ffffffffffffffffffffffffffffffff).
 
 %% @doc Advance xorshift128plus state for one step.
 %% and generate 64bit unsigned integer from
@@ -114,9 +116,13 @@ seed({A1, A2, A3}) ->
 -spec seed(integer(), integer(), integer()) -> 'undefined' | state().
 
 seed(A1, A2, A3) ->
-    S = ((A1 * 4294967197) * (A2 * 4294967231) * (A3 * 4294967279)
-        rem 16#fffffffffffffffffffffffffffffffe) + 1,
-    seed_put(#state{s0 = S band ?UINT64MASK, s1 = S bsr 64}).
+    {V1, _} = next(
+               #state{s0 = (((A1 * 4294967197) + 1) band ?UINT64MASK),
+                      s1 = (((A2 * 4294967231) + 1) band ?UINT64MASK)}),
+    {_, R} = next(
+             #state{s0 = (((A3 * 4294967279) + 1) band ?UINT64MASK),
+                    s1 = V1}),
+    seed_put(R).
 
 %% @doc Generate float from
 %% given xorshift128plus internal state.
