@@ -89,7 +89,7 @@ seed0() ->
 seed() ->
     case seed_put(seed0()) of
         undefined -> seed0();
-        #state{s0 = _S0, s1 = _s1} = R -> R
+        #state{s0 = _S0, s1 = _S1} = R -> R
     end.
 
 %% @doc Put the seed, or internal state, into the process dictionary.
@@ -116,13 +116,13 @@ seed({A1, A2, A3}) ->
 -spec seed(integer(), integer(), integer()) -> 'undefined' | state().
 
 seed(A1, A2, A3) ->
-    {V1, _} = next(
+    {_, R1} = next(
                #state{s0 = (((A1 * 4294967197) + 1) band ?UINT64MASK),
                       s1 = (((A2 * 4294967231) + 1) band ?UINT64MASK)}),
-    {_, R} = next(
+    {_, R2} = next(
              #state{s0 = (((A3 * 4294967279) + 1) band ?UINT64MASK),
-                    s1 = V1}),
-    seed_put(R).
+                    s1 = R1#state.s1}),
+    seed_put(R2).
 
 %% @doc Generate float from
 %% given xorshift128plus internal state.
