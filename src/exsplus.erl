@@ -29,13 +29,10 @@
 
 -export([
      next/1,
-     print_state/1,
      seed0/0,
      seed/0,
      seed/1,
      seed/3,
-     test/0,
-     test/2,
      uniform/0,
      uniform/1,
      uniform_s/1,
@@ -172,26 +169,4 @@ uniform(N) when is_integer(N), N >= 1 ->
     {V, R1} = uniform_s(N, R),
     put(exsplus_seed, R1),
     V.
-
--spec print_state(state()) -> ok.
-
-print_state(R) ->
-    io:format("s[0] = ~p s[1] = ~p~n",
-               [R#state.s0, R#state.s1]).
-
--spec test(non_neg_integer(), state()) -> ok.
-
-test(0, _) -> ok;
-test(I, R) ->
-    {N, R1} = next(R),
-    io:format("next = ~p ", [N]),
-    print_state(R1),
-    test(I - 1, R1).
-
--spec test() -> ok.
-
-test() ->
-    R = seed0(),
-    print_state(R),
-    test(1000, R).
 
