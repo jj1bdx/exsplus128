@@ -35,8 +35,13 @@
      seed/1,
      seed/3,
      temper/1,
+     temper_float/1,
      test/0,
-     test/2
+     test/2,
+     uniform/0,
+     uniform/1,
+     uniform_s/1,
+     uniform_s/2
  ]).
 
 -export_type([state/0]).
@@ -53,6 +58,7 @@
 
 -opaque state() :: #state{}.
 
+-define(TWOPOW64,   16#10000000000000000).
 -define(UINT64MASK, 16#ffffffffffffffff).
 
 %% @doc Advance xorshift128plus state for one step.
@@ -75,6 +81,15 @@ next_state(R) ->
 
 temper(R) ->
     (R#state.s0 + R#state.s1) band ?UINT64MASK.
+
+%% @doc Generate 52bit-resolution float from temper/1.
+%% (Note: 0.0 =&lt; result &lt; 1.0)
+
+-spec temper_float(state()) -> float().
+
+temper_float(R) ->
+    <<X/float>> = <<(16#3ff0000000000000 bor (temper(R) bsr 12)):64>>,
+    X - 1.0.
 
 -spec seed0() -> state().
 
@@ -122,6 +137,66 @@ seed(A1, A2, A3) ->
     S = ((A1 * 4294967197) * (A2 * 4294967231) * (A3 * 4294967279)
         rem 16#fffffffffffffffffffffffffffffffe) + 1,
     seed_put(#state{s0 = S band ?UINT64MASK, s1 = S bsr 64}).
+
+%% @doc Generate 52bit-resolution float from 
+%% given xorshift128plus internal state.
+%% (Note: 0.0 =&lt; result &lt; 1.0)
+%% (Compatible with random:uniform_s/1)
+
+-spec uniform_s(state()) -> {float(), state()}.
+
+uniform_s(R0) ->
+    R1 = next_state(R0),
+    {temper_float(R1), R1}.
+
+-spec uniform() -> float().
+
+%% @doc Generate 52bit-resolution float
+%% given xorshift128plus internal state
+%% in the process dictionary.
+%% (Note: 0.0 =&lt; result &lt; 1.0)
+%% (Compatible with random:uniform/1)
+
+uniform() ->
+    R = case get(exsplus_seed) of
+        undefined -> seed0();
+        _R -> _R
+    end,
+    {V, R2} = uniform_s(R),
+    put(exsplus_seed, R2),
+    V.
+
+%% @doc Generate integer from given xorshift128plus internal state.
+%% (Note: 0 =&lt; result &lt; MAX (given positive integer))
+-spec uniform_s(pos_integer(), state()) -> {pos_integer(), state()}.
+
+uniform_s(Max, R) when is_integer(Max), Max >= 1 ->
+    Limit = ?TWOPOW64 - (?TWOPOW64 rem Max),
+    uniform_s(Max, Limit, R).
+
+uniform_s(M, L, R) ->
+    R1 = next_state(R),
+    V = temper(R1),
+    case V < L of
+    true -> {(V rem M) + 1, R1};
+    false -> uniform_s(M, L, R1)
+    end.
+
+%% @doc Generate integer from the given TinyMT internal state
+%% in the process dictionary.
+%% (Note: 1 =&lt; result =&lt; N (given positive integer))
+%% (compatible with random:uniform/1)
+
+-spec uniform(pos_integer()) -> pos_integer().
+
+uniform(N) when is_integer(N), N >= 1 ->
+    R = case get(exsplus_seed) of
+        undefined -> seed0();
+        _R -> _R
+    end,
+    {V, R1} = uniform_s(N, R),
+    put(exsplus_seed, R1),
+    V.
 
 -spec print_state(state()) -> ok.
 
