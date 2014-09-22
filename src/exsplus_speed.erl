@@ -37,8 +37,7 @@ test_speed_exsplus_uniform_rec1(Acc, X, 0, R, I) ->
     _ = lists:reverse(Acc),
     test_speed_exsplus_uniform_rec1([], X - 1, R, R, I);
 test_speed_exsplus_uniform_rec1(Acc, X, Q, R, I) ->
-    I2 = exsplus:next_state(I),
-    F = exsplus:temper(I) / 4294967296.0, % tentative: got to fix
+    {F, I2} = exsplus:uniform_s(I),
     test_speed_exsplus_uniform_rec1([F|Acc], X, Q - 1, R, I2).
 
 -spec test_speed_exsplus_uniform(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
@@ -80,8 +79,7 @@ test_speed_exsplus_uniform_n_rec1(Acc, X, 0, R, I) ->
     _ = lists:reverse(Acc),
     test_speed_exsplus_uniform_n_rec1([], X - 1, R, R, I);
 test_speed_exsplus_uniform_n_rec1(Acc, X, Q, R, I) ->
-    I2 = exsplus:next_state(I),
-    F = exsplus:temper(I) rem 10000,
+    {F, I2} = exsplus:uniform_s(10000, I),
     test_speed_exsplus_uniform_n_rec1([F|Acc], X, Q - 1, R, I2).
 
 -spec test_speed_exsplus_uniform_n(non_neg_integer(), non_neg_integer()) -> non_neg_integer().
