@@ -3,19 +3,19 @@
 %% @doc Xorshift128plus for Erlang
 %% @end
 %% (MIT License)
-%% 
+%%
 %% Copyright (c) 2014 Kenji Rikitake. All rights reserved.
-%% 
+%%
 %% Permission is hereby granted, free of charge, to any person obtaining a copy of
 %% this software and associated documentation files (the "Software"), to deal in
 %% the Software without restriction, including without limitation the rights to
 %% use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 %% of the Software, and to permit persons to whom the Software is furnished to do
 %% so, subject to the following conditions:
-%% 
+%%
 %% The above copyright notice and this permission notice shall be included in all
 %% copies or substantial portions of the Software.
-%% 
+%%
 %% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 %% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 %% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,19 +23,17 @@
 %% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 %% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 %% SOFTWARE.
-%% 
+%%
 
 -module(exsplus).
 
 -export([
-     next_state/1,
+     next/1,
      print_state/1,
      seed0/0,
      seed/0,
      seed/1,
      seed/3,
-     temper/1,
-     temper_float/1,
      test/0,
      test/2,
      uniform/0,
@@ -44,7 +42,10 @@
      uniform_s/2
  ]).
 
--export_type([state/0]).
+-export_type([
+        state/0,
+        uint64/0
+    ]).
 
 %% @type uint64(). 64bit unsigned integer type.
 
@@ -61,33 +62,17 @@
 -define(UINT64MASK, 16#ffffffffffffffff).
 
 %% @doc Advance xorshift128plus state for one step.
-%% Note: running temper function is required
-%% to obtain the actual random number.
+%% and generate 64bit unsigned integer from
+%% the xorshift128plus internal state.
 
--spec next_state(state()) -> state().
+-spec next(state()) -> {uint64(), state()}.
 
-next_state(R) ->
+next(R) ->
     S1 = R#state.s0,
     S0 = R#state.s1,
     S11 = (S1 bxor (S1 bsl 23)) band ?UINT64MASK,
-    #state{s0 = S0, 
-           s1 = S11 bxor S0 bxor (S11 bsr 17) bxor (S0 bsr 26)}.
-
-%% @doc Generate 64bit unsigned integer from
-%% the xorshift128plus internal state.
-
--spec temper(state()) -> uint64().
-
-temper(R) ->
-    (R#state.s0 + R#state.s1) band ?UINT64MASK.
-
-%% @doc Generate float from temper/1.
-%% (Note: 0.0 &lt; result &lt; 1.0)
-
--spec temper_float(state()) -> float().
-
-temper_float(R) ->
-    temper(R) / 18446744073709551616.0.
+    S12 = S11 bxor S0 bxor (S11 bsr 17) bxor (S0 bsr 26),
+    {(S0 + S12) band ?UINT64MASK, #state{s0 = S0, s1 = S12}}.
 
 -spec seed0() -> state().
 
@@ -136,7 +121,7 @@ seed(A1, A2, A3) ->
         rem 16#fffffffffffffffffffffffffffffffe) + 1,
     seed_put(#state{s0 = S band ?UINT64MASK, s1 = S bsr 64}).
 
-%% @doc Generate float from 
+%% @doc Generate float from
 %% given xorshift128plus internal state.
 %% (Note: 0.0 =&lt; result &lt; 1.0)
 %% (Compatible with random:uniform_s/1)
@@ -144,8 +129,8 @@ seed(A1, A2, A3) ->
 -spec uniform_s(state()) -> {float(), state()}.
 
 uniform_s(R0) ->
-    R1 = next_state(R0),
-    {temper_float(R1), R1}.
+    {I, R1} = next(R0),
+    {I / 18446744073709551616.0, R1}.
 
 -spec uniform() -> float().
 
@@ -169,8 +154,8 @@ uniform() ->
 -spec uniform_s(pos_integer(), state()) -> {pos_integer(), state()}.
 
 uniform_s(Max, R) when is_integer(Max), Max >= 1 ->
-    R1 = next_state(R),
-    {(temper(R1) rem Max) + 1, R1}.
+    {V, R1} = next(R),
+    {(V rem Max) + 1, R1}.
 
 %% @doc Generate integer from the given TinyMT internal state
 %% in the process dictionary.
@@ -198,8 +183,7 @@ print_state(R) ->
 
 test(0, _) -> ok;
 test(I, R) ->
-    R1 = next_state(R),
-    N = temper(R1),
+    {N, R1} = next(R),
     io:format("next = ~p ", [N]),
     print_state(R1),
     test(I - 1, R1).
@@ -208,6 +192,6 @@ test(I, R) ->
 
 test() ->
     R = seed0(),
-    print_state(R),  
+    print_state(R),
     test(1000, R).
 
