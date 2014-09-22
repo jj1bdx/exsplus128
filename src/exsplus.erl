@@ -30,6 +30,10 @@
 -export([
      next_state/1,
      print_state/1,
+     seed0/0,
+     seed/0,
+     seed/1,
+     seed/3,
      temper/1,
      test/0,
      test/2
@@ -72,6 +76,53 @@ next_state(R) ->
 temper(R) ->
     (R#state.s0 + R#state.s1) band ?UINT64MASK.
 
+-spec seed0() -> state().
+
+%% @doc Set the default seed value to xorshift128plus state
+%% in the process directory (Compatible with random:seed0/0).
+
+seed0() ->
+    #state{s0 = 1234567890123456789, s1 = 9876543210987654321}.
+
+%% @doc Set the default seed value to xorshift128plus state
+%% in the process directory %% (Compatible with random:seed/1).
+
+-spec seed() -> state().
+
+seed() ->
+    case seed_put(seed0()) of
+        undefined -> seed0();
+        #state{s0 = _S0, s1 = _s1} = R -> R
+    end.
+
+%% @doc Put the seed, or internal state, into the process dictionary.
+
+-spec seed_put(state()) -> 'undefined' | state().
+
+seed_put(R) ->
+    put(exsplus_seed, R).
+
+%% @doc Set the seed value to xorshift128plus state in the process directory.
+%% with the given three-element tuple of unsigned 32-bit integers
+%% (Compatible with random:seed/1).
+
+-spec seed({integer(), integer(), integer()}) -> 'undefined' | state().
+
+seed({A1, A2, A3}) ->
+    seed(A1, A2, A3).
+
+%% @doc Set the seed value to xorshift128plus state in the process directory
+%% with the given three unsigned 32-bit integer arguments
+%% (Compatible with random:seed/3).
+%% Multiplicands here: three 32-bit primes
+
+-spec seed(integer(), integer(), integer()) -> 'undefined' | state().
+
+seed(A1, A2, A3) ->
+    S = ((A1 * 4294967197) * (A2 * 4294967231) * (A3 * 4294967279)
+        rem 16#fffffffffffffffffffffffffffffffe) + 1,
+    seed_put(#state{s0 = S band ?UINT64MASK, s1 = S bsr 64}).
+
 -spec print_state(state()) -> ok.
 
 print_state(R) ->
@@ -91,7 +142,7 @@ test(I, R) ->
 -spec test() -> ok.
 
 test() ->
-    R = #state{s0 = 1234567890123456789, s1 = 9876543210987654321},
+    R = seed0(),
     print_state(R),  
     test(1000, R).
 
