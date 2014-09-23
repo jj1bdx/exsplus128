@@ -10,5 +10,5 @@ ERLC_OPTS += +native "+{hipe, [o3]}"
 
 include erlang.mk
 
-# speed: all
-#	 escript ./test-scripts/testspeed.escript
+speed: all
+	escript ./test-scripts/testspeed.escript
