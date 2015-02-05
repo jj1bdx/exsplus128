@@ -64,9 +64,7 @@
 
 -spec next(state()) -> {uint64(), state()}.
 
-next(R) ->
-    S1 = R#state.s0,
-    S0 = R#state.s1,
+next(#state{s0 = S1, s1 = S0}) ->
     S11 = (S1 bxor (S1 bsl 23)) band ?UINT64MASK,
     S12 = S11 bxor S0 bxor (S11 bsr 17) bxor (S0 bsr 26),
     {(S0 + S12) band ?UINT64MASK, #state{s0 = S0, s1 = S12}}.
