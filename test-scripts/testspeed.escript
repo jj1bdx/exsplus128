@@ -4,8 +4,8 @@
 
 %% Note: execute from the root path
 
--define(TARGET_MODULE, exsplus).
--define(TEST_MODULE, exsplus_speed).
+-define(TARGET_MODULE, exsplus128).
+-define(TEST_MODULE, exsplus128_speed).
 
 main(_) ->
 

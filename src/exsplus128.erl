@@ -25,7 +25,7 @@
 %% SOFTWARE.
 %%
 
--module(exsplus).
+-module(exsplus128).
 
 -export([
      next/1,

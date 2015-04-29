@@ -1,8 +1,8 @@
-{application, exsplus, [
+{application, exsplus128, [
     {description, "Xorshift128plus PRNG for Erlang"},
-    {vsn, "0.1.1"},
+    {vsn, "0.2.0"},
     {env, []},
     {registered, []},
-    {modules, [exsplus]},
+    {modules, [exsplus128]},
     {applications, [kernel, stdlib]}
 ]}.
