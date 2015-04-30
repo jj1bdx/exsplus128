@@ -4,6 +4,10 @@ xorshift128plus is a 64-bit PRNG of (2^127-1) period.
 
 See <http://xorshift.di.unimi.it/> for the further details.
 
+Version: 0.2.0
+
+Note: this project is succeeded by [exsplus116](https://github.com/jj1bdx/exsplus116/).
+
 ## LICENSE
 
 MIT License.
@@ -35,11 +39,6 @@ than twice of `random` module on a x86\_64 or amd64 architecture environment.
 * Testing: `make tests`
 * Execution speed benchmark: `make speed`
 * See also [erlang.mk](https://github.com/extend/erlang.mk) for the details
-
-## TODO
-
-* More seeding algorithms
-* More evaluation and refactoring
 
 ## Authors
 
