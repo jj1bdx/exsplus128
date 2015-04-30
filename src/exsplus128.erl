@@ -93,7 +93,7 @@ seed() ->
 -spec seed_put(state()) -> 'undefined' | state().
 
 seed_put(R) ->
-    put(exsplus_seed, R).
+    put(exsplus128_seed, R).
 
 %% @doc Set the seed value to xorshift128plus state in the process directory.
 %% with the given three-element tuple of unsigned 32-bit integers
@@ -140,12 +140,12 @@ uniform_s(R0) ->
 %% (Compatible with random:uniform/1)
 
 uniform() ->
-    R = case get(exsplus_seed) of
+    R = case get(exsplus128_seed) of
         undefined -> seed0();
         _R -> _R
     end,
     {V, R2} = uniform_s(R),
-    put(exsplus_seed, R2),
+    put(exsplus128_seed, R2),
     V.
 
 %% @doc Generate integer from given xorshift128plus internal state.
@@ -164,11 +164,11 @@ uniform_s(Max, R) when is_integer(Max), Max >= 1 ->
 -spec uniform(pos_integer()) -> pos_integer().
 
 uniform(N) when is_integer(N), N >= 1 ->
-    R = case get(exsplus_seed) of
+    R = case get(exsplus128_seed) of
         undefined -> seed0();
         _R -> _R
     end,
     {V, R1} = uniform_s(N, R),
-    put(exsplus_seed, R1),
+    put(exsplus128_seed, R1),
     V.
 
