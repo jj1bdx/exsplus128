@@ -20,7 +20,7 @@
 %% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 %% SOFTWARE.
 
--module(exsplus_SUITE).
+-module(exsplus128_SUITE).
 -include_lib("common_test/include/ct.hrl").
 -export([all/0]).
 -export([testloop_test/1]).
@@ -31,13 +31,13 @@ all() ->
 -spec testloop(pos_integer()) -> list().
 
 testloop(N) ->
-    R = exsplus:seed0(),
+    R = exsplus128:seed0(),
     testloop(N, R, []).
 
 testloop(0, _, L) ->
     lists:reverse(L);
 testloop(N, R, L) ->
-    {V, R1} = exsplus:next(R),
+    {V, R1} = exsplus128:next(R),
     testloop(N - 1, R1, [V|L]).
 
 testloop_test(_Config) ->
