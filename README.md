@@ -6,7 +6,12 @@ See <http://xorshift.di.unimi.it/> for the further details.
 
 Version: 0.2.0
 
-Note: this project is succeeded by [exsplus116](https://github.com/jj1bdx/exsplus116/).
+Note: this project is succeeded by [exsplus116](https://github.com/jj1bdx/exsplus116/), the default PRNG for the rand module in OTP 18.0 and later.
+
+Note 12-JAN-2016: the algorithm of Xorshift128+ in this code is an old one
+shown at
+<https://web.archive.org/web/20150905215225/http://xorshift.di.unimi.it/>. 
+No further development will be made. Use [exsplus116](https://github.com/jj1bdx/exsplus116/) instead.
 
 ## LICENSE
 
